@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { MemoComment } from './memo-comment.entity';
 
 export type MemoDocument = Memo & Document;
 
@@ -18,7 +19,7 @@ export class Memo {
   note: string;
 
   @Prop()
-  comments: string;
+  comments: MemoComment[];
 
   @Prop()
   createdAt: Date;

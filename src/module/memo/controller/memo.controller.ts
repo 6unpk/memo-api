@@ -19,6 +19,7 @@ import { Pageable } from '../../common/pageable';
 import { PageableResponse } from '../../common/pageable.response';
 import { AuthGuard } from '../../auth/auth.guard';
 import { Username } from '../../auth/decorator/user';
+import { MemoCommentController } from './memo-comment.controller';
 
 @Controller('memos')
 @ApiTags('Memo')
@@ -31,6 +32,9 @@ export class MemoController {
       username: entity.authorId,
       title: entity.title,
       note: entity.note,
+      comments: entity.comments.map((v) =>
+        MemoCommentController.entityToDto(v),
+      ),
     };
   }
 
