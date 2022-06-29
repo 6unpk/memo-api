@@ -42,9 +42,14 @@ export class MemoService {
     });
   }
 
-  async createMemo(title: string, note: string): Promise<Memo> {
+  async createMemo(
+    username: string,
+    title: string,
+    note: string,
+  ): Promise<Memo> {
     const memo = await new this.memoRepository({
       _id: uuidv4(),
+      authorId: username,
       title,
       note,
       createdAt: new Date(),
@@ -54,28 +59,45 @@ export class MemoService {
     return memo.save();
   }
 
-  async updateMemo(memoId: string, title: string, note: string): Promise<Memo> {
-    const findOne = await this.memoRepository.findByIdAndUpdate(
-      {
-        _id: memoId,
-      },
-      {
-        title,
-        note,
-        modifiedAt: new Date(),
-      },
-      {
-        lean: true,
-      },
+  async updateMemo(
+    username: string,
+    memoId: string,
+    title: string,
+    note: string,
+  ): Promise<Memo> {
+    const findOne = await this.validateMemoAuthor(memoId, username);
+
+    return (
+      (await this.memoRepository.findByIdAndUpdate(
+        {
+          _id: memoId,
+        },
+        {
+          title,
+          note,
+          modifiedAt: new Date(),
+        },
+        {
+          new: true,
+        },
+      )) ?? findOne
     );
-
-    if (findOne == null) throw new HttpError(404, 'NOT_FOUND_MEMO');
-
-    return findOne;
   }
 
-  async deleteMemo(memoId: string): Promise<string> {
+  async deleteMemo(username: string, memoId: string): Promise<string> {
+    await this.validateMemoAuthor(username, memoId);
     await this.memoRepository.deleteOne({ _id: memoId });
     return memoId;
+  }
+
+  async validateMemoAuthor(memoId: string, username: string): Promise<Memo> {
+    const findOne = await this.memoRepository.findOne({
+      _id: memoId,
+    });
+
+    if (findOne == null) throw new HttpError(404, 'NOT_FOUND_MEMO');
+    if (findOne.authorId != username) throw new HttpError(403, 'NOT_YOUR_MEMO');
+
+    return findOne;
   }
 }
