@@ -52,6 +52,7 @@ export class MemoService {
       authorId: username,
       title,
       note,
+      comments: [],
       createdAt: new Date(),
       modifiedAt: null,
       deletedAt: null,
