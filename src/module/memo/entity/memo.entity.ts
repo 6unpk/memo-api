@@ -9,6 +9,9 @@ export class Memo {
   _id: string;
 
   @Prop()
+  authorId: string;
+
+  @Prop()
   title: string;
 
   @Prop()

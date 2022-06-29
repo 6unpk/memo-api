@@ -18,6 +18,7 @@ import { SortType } from '../../common/sort-type.enum';
 import { Pageable } from '../../common/pageable';
 import { PageableResponse } from '../../common/pageable.response';
 import { AuthGuard } from '../../auth/auth.guard';
+import { Username } from '../../auth/decorator/user';
 
 @Controller('memos')
 @ApiTags('Memo')
@@ -27,6 +28,7 @@ export class MemoController {
   private static entityToDto(entity: Memo): MemoDto {
     return {
       id: entity._id,
+      username: entity.authorId,
       title: entity.title,
       note: entity.note,
     };
@@ -57,35 +59,50 @@ export class MemoController {
 
   /**
    *
+   * @param username
    * @param id
    * @param request
    */
   @Put(':memoId')
   @UseGuards(AuthGuard)
   async updateMemo(
+    @Username() username: string,
     @Param('memoId') id: string,
     @Body() request: MemoRequest,
   ): Promise<MemoDto> {
     return MemoController.entityToDto(
-      await this.memoService.updateMemo(id, request.title, request.note),
+      await this.memoService.updateMemo(
+        username,
+        id,
+        request.title,
+        request.note,
+      ),
     );
   }
 
   /**
    *
+   * @param username
    * @param request
    */
   @Post()
-  async addMemoList(@Body() request: MemoRequest): Promise<MemoDto> {
+  @UseGuards(AuthGuard)
+  async addMemoList(
+    @Username() username: string,
+    @Body() request: MemoRequest,
+  ): Promise<MemoDto> {
     return MemoController.entityToDto(
-      await this.memoService.createMemo(request.note, request.title),
+      await this.memoService.createMemo(username, request.note, request.title),
     );
   }
 
   @Delete(':memoId')
   @UseGuards(AuthGuard)
-  async deleteMemo(@Param('memoId') id: string): Promise<string> {
-    await this.memoService.deleteMemo(id);
+  async deleteMemo(
+    @Username() username: string,
+    @Param('memoId') id: string,
+  ): Promise<string> {
+    await this.memoService.deleteMemo(username, id);
     return id;
   }
 }
